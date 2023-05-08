@@ -17,7 +17,7 @@ https://github.com/BerdyshevEugene/gui_calc.git
 create and activate virtual enviroment:
 ```sh
 python3 -m venv venv
-source env/bin/activate
+source venv/bin/activate
 python3 -m pip install --upgrade pip
 ```
 install dependencies from a file requirements.txt:
