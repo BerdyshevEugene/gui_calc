@@ -27,7 +27,9 @@ class Calculator(QMainWindow):
         super(Calculator, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.entry_max_len = self.ui.le_entry.maxLength()
+        self.entry = self.ui.le_entry
+        self.temp = self.ui.lbl_temp
+        self.entry_max_len = self.entry.maxLength()
 
         # QFontDatabase.addApplicationFont('fonts/font_name.ttf')
 
@@ -65,22 +67,22 @@ class Calculator(QMainWindow):
                          'btn_5', 'btn_6', 'btn_7', 'btn_8', 'btn_9')
 
         if btn.objectName() in digit_buttons:
-            if self.ui.le_entry.text() == '0':
-                self.ui.le_entry.setText(btn.text())
+            if self.entry.text() == '0':
+                self.entry.setText(btn.text())
             else:
-                self.ui.le_entry.setText(self.ui.le_entry.text() + btn.text())
+                self.entry.setText(self.entry.text() + btn.text())
 
         self.adjust_entry_font_size()
 
     def add_point(self) -> None:
         self.clear_temp_if_equality()
-        if '.' not in self.ui.le_entry.text():
-            self.ui.le_entry.setText(self.ui.le_entry.text() + '.')
+        if '.' not in self.entry.text():
+            self.entry.setText(self.entry.text() + '.')
             self.adjust_entry_font_size()
 
     def negate(self):
         self.clear_temp_if_equality()
-        entry = self.ui.le_entry.text()
+        entry = self.entry.text()
 
         if '-' not in entry:
             if entry != '0':
@@ -89,42 +91,44 @@ class Calculator(QMainWindow):
             entry = entry[1:]
 
         if len(entry) == self.entry_max_len + 1 and '-' in entry:
-            self.ui.le_entry.setMaxLength(self.entry_max_len + 1)
+            self.entry.setMaxLength(self.entry_max_len + 1)
         else:
-            self.ui.le_entry.setMaxLength(self.entry_max_len)
+            self.entry.setMaxLength(self.entry_max_len)
 
-        self.ui.le_entry.setText(entry)
+        self.entry.setText(entry)
         self.adjust_entry_font_size()
 
     def backspace(self) -> None:
         self.remove_error()
         self.clear_temp_if_equality()
-        entry = self.ui.le_entry.text()
+        entry = self.entry.text()
 
         if len(entry) != 1:
             if len(entry) == 2 and '-' in entry:
-                self.ui.le_entry.setText('0')
+                self.entry.setText('0')
             else:
-                self.ui.le_entry.setText(entry[:-1])
+                self.entry.setText(entry[:-1])
         else:
-            self.ui.le_entry.setText('0')
+            self.entry.setText('0')
         self.adjust_entry_font_size()
 
     def clear_all(self) -> None:
         self.remove_error()
-        self.ui.le_entry.setText('0')
+        self.entry.setText('0')
         self.adjust_entry_font_size()
-        self.ui.lbl_temp.clear()
+        self.temp.clear()
+        self.adjust_temp_font_size()
 
     def clear_entry(self) -> None:
         self.remove_error()
         self.clear_temp_if_equality()
-        self.ui.le_entry.setText('0')
+        self.entry.setText('0')
         self.adjust_entry_font_size()
 
     def clear_temp_if_equality(self) -> None:
         if self.get_math_sign() == '=':
-            self.ui.lbl_temp.clear()
+            self.temp.clear()
+            self.adjust_temp_font_size()
 
     @staticmethod
     def remove_trailing_zeroes(num: str) -> str:
@@ -133,44 +137,46 @@ class Calculator(QMainWindow):
 
     def add_temp(self) -> None:
         btn = self.sender()
-        entry = self.remove_trailing_zeroes(self.ui.le_entry.text())
+        entry = self.remove_trailing_zeroes(self.entry.text())
 
-        if not self.ui.lbl_temp.text() or self.get_math_sign() == '=':
-            self.ui.lbl_temp.setText(entry + f' {btn.text()} ')
-            self.ui.le_entry.setText('0')
+        if not self.temp.text() or self.get_math_sign() == '=':
+            self.temp.setText(entry + f' {btn.text()} ')
+            self.adjust_temp_font_size()
+            self.entry.setText('0')
             self.adjust_entry_font_size()
 
     def get_entry_num(self) -> Union[int, float]:
-        entry = self.ui.le_entry.text().strip('.')
+        entry = self.entry.text().strip('.')
         return float(entry) if '.' in entry else int(entry)
 
     def get_temp_num(self) -> Union[int, float, None]:
-        if self.ui.lbl_temp.text():
-            temp = self.ui.lbl_temp.text().strip('.').split()[0]
+        if self.temp.text():
+            temp = self.temp.text().strip('.').split()[0]
             return float(temp) if '.' in temp else int(temp)
 
     def get_math_sign(self) -> Optional[str]:
-        if self.ui.lbl_temp.text():
-            return self.ui.lbl_temp.text().strip('.').split()[-1]
+        if self.temp.text():
+            return self.temp.text().strip('.').split()[-1]
 
     def get_entry_text_width(self) -> int:
-        return self.ui.le_entry.fontMetrics().boundingRect(self.ui.le_entry.text()).width()
+        return self.entry.fontMetrics().boundingRect(self.entry.text()).width()
 
     def get_temp_text_width(self) -> int:
-        return self.ui.lbl_temp.fontMetrics().boundingRect(self.ui.lbl_temp.text()).width()
+        return self.temp.fontMetrics().boundingRect(self.temp.text()).width()
 
     def calculate(self) -> Optional[str]:
-        entry = self.ui.le_entry.text()
-        temp = self.ui.lbl_temp.text()
+        entry = self.entry.text()
+        temp = self.temp.text()
         if temp:
             try:
                 result = self.remove_trailing_zeroes(
                     str(operations[self.get_math_sign()](
                         self.get_temp_num(), self.get_entry_num()))
                 )
-                self.ui.lbl_temp.setText(
+                self.temp.setText(
                     temp + self.remove_trailing_zeroes(entry) + ' =')
-                self.ui.le_entry.setText(result)
+                self.adjust_temp_font_size()
+                self.entry.setText(result)
                 self.adjust_entry_font_size()
                 return result
             except KeyError:
@@ -182,7 +188,7 @@ class Calculator(QMainWindow):
                     self.show_error(error_zero_div)
 
     def math_operation(self) -> None:
-        temp = self.ui.lbl_temp.text()
+        temp = self.temp.text()
         btn = self.sender()
 
         if not temp:
@@ -192,20 +198,21 @@ class Calculator(QMainWindow):
                 if self.get_math_sign() == '=':
                     self.add_temp()
                 else:
-                    self.ui.lbl_temp.setText(temp[:-2] + f'{btn.text} ')
+                    self.temp.setText(temp[:-2] + f'{btn.text} ')
             else:
-                self.ui.lbl_temp.setText(self.calculate() + f' {btn.text}')
+                self.temp.setText(self.calculate() + f' {btn.text}')
+        self.adjust_temp_font_size()
 
     def show_error(self, text: str) -> None:
-        self.ui.le_entry.setMaxLength(len(text))
-        self.ui.le_entry.setText(text)
+        self.entry.setMaxLength(len(text))
+        self.entry.setText(text)
         self.adjust_entry_font_size()
         self.disable_buttons(True)
 
     def remove_error(self) -> None:
-        if self.ui.le_entry.text() in (error_undefined, error_zero_div):
-            self.ui.le_entry.setMaxLength(self.entry_max_len)
-            self.ui.le_entry.setText('0')
+        if self.entry.text() in (error_undefined, error_zero_div):
+            self.entry.setMaxLength(self.entry_max_len)
+            self.entry.setText('0')
             self.adjust_entry_font_size()
             self.disable_buttons(False)
 
@@ -232,10 +239,41 @@ class Calculator(QMainWindow):
 
     def adjust_entry_font_size(self) -> None:
         font_size = default_entry_font_size
-        while self.get_entry_text_width() > self.ui.le_entry.width():
+        while self.get_entry_text_width() > self.entry.width() - 15:
             font_size -= 1
-            self.ui.le_entry.setStyleSheet(
+            self.entry.setStyleSheet(
                 'font-size: ' + str(font_size) + 'pt; border: none;')
+
+        font_size = 1
+        while self.get_entry_text_width() < self.entry.width() - 60:
+            font_size += 1
+
+            if font_size > default_entry_font_size:
+                break
+
+            self.entry.setStyleSheet(
+                'font-size: ' + str(font_size) + 'pt; border: none;')
+
+    def adjust_temp_font_size(self) -> None:
+        font_size = default_font_size
+        while self.get_temp_text_width() > self.temp.width() - 10:
+            font_size -= 1
+            self.temp.setStyleSheet(
+                'font-size: ' + str(font_size) + 'pt; color: #888;')
+
+        font_size = 1
+        while self.get_temp_text_width() < self.temp.width() - 60:
+            font_size += 1
+
+            if font_size > default_font_size:
+                break
+
+            self.temp.setStyleSheet(
+                'font-size: ' + str(font_size) + 'pt; color: #888;')
+
+    def resizeEvent(self, event) -> None:
+        self.adjust_entry_font_size()
+        self.adjust_temp_font_size()
 
 
 if __name__ == "__main__":

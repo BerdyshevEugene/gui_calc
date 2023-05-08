@@ -14,10 +14,11 @@ from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
                            QFont, QFontDatabase, QGradient, QIcon,
                            QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform)
+                           QPalette, QPixmap, QRadialGradient, QTransform, QShortcut)
 from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
                                QMainWindow, QPushButton, QSizePolicy, QVBoxLayout,
                                QWidget)
+
 import files_rc
 
 
@@ -393,14 +394,16 @@ class Ui_MainWindow(object):
 # endif // QT_CONFIG(shortcut)
         self.btn_point.setText(
             QCoreApplication.translate("MainWindow", u".", None))
-# if QT_CONFIG(shortcut)
-        self.btn_point.setShortcut(
-            QCoreApplication.translate("MainWindow", u".", None))
+# if QT_CONGIG(shortcut)
+        for sc in (',', '.'):
+            QShortcut(sc, self.btn_point).activated.connect(
+                self.btn_point.animateClick)
 # endif // QT_CONFIG(shortcut)
         self.btn_equal.setText(
             QCoreApplication.translate("MainWindow", u"=", None))
 # if QT_CONFIG(shortcut)
-        self.btn_equal.setShortcut(
-            QCoreApplication.translate("MainWindow", u"=", None))
+        for sc in ('=', 'Enter', 'Return'):
+            QShortcut(sc, self.btn_equal).activated.connect(
+                self.btn_equal.animateClick)
 # endif // QT_CONFIG(shortcut)
     # retranslateUi
